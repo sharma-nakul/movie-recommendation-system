@@ -24,6 +24,7 @@ import java.util.List;
  * Created by Naks on 02-May-16.
  * Class to implement Pearson Correlation Algorithm
  */
+
 public class PearsonCorrelation {
 
     private static final Logger logger = LoggerFactory.getLogger(PearsonCorrelation.class);

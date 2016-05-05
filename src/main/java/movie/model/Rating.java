@@ -1,11 +1,15 @@
 package movie.model;
 
+import org.springframework.stereotype.Component;
+
 import java.io.Serializable;
 
 /**
  * Created by Naks on 02-May-16.
  * Movies that user rated.
  */
+
+@Component
 public class Rating implements Serializable{
 
     private int userId;

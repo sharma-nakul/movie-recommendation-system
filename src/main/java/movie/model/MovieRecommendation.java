@@ -1,5 +1,7 @@
 package movie.model;
 
+import org.springframework.stereotype.Component;
+
 import java.io.Serializable;
 
 /**
@@ -7,6 +9,7 @@ import java.io.Serializable;
  * POJO Class for movie recommendations.
  */
 
+@Component
 public class MovieRecommendation implements Serializable {
 
     private int movieId;

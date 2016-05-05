@@ -1,29 +1,31 @@
-package movie.recommendation;
+package movie.config;
 
 import movie.model.PCModel;
 import movie.operation.PearsonCorrelation;
-import movie.operation.SaveInCassandra;
-import org.apache.mahout.cf.taste.recommender.RecommendedItem;
+import movie.operation.RecoMining;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SQLContext;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
 import static org.apache.spark.api.java.JavaSparkContext.fromSparkContext;
 
 
+@Configuration
+@ComponentScan(basePackages = "movie")
+@EnableAutoConfiguration
 public class SparkApp {
-    private static final String moviesFilePath="spark-streaming\\src\\main\\resources\\movies.csv";
-    private static final String ratingsFilePath="spark-streaming\\src\\main\\resources\\ratings.csv";
-
-    private static final int userId=1;
-    private static final String keySpace="movies";
-    private static final String movieListTable="movies_list";
-    private static final String userRatingTable="user_rating";
 
     public static void main(String[] args) throws Exception {
+
+
+        SpringApplication.run(SparkApp.class,args);
 
         SparkConf sparkConf = new SparkConf().setAppName("MovieRecommendation")
                 .setMaster("local[4]")
@@ -34,15 +36,19 @@ public class SparkApp {
         JavaSparkContext jsc = fromSparkContext(sc);
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sc);
 
-        SaveInCassandra saveInCassandra= new SaveInCassandra(sc);
+        RecoMining recoMining = new RecoMining(sc);
         //saveInCassandra.saveMovies(); // Completed and Working
         //saveInCassandra.saveRatings(); // Completed and Working
         //saveInCassandra.saveTags(); // Completed and Working
 
-        PearsonCorrelation pc=new PearsonCorrelation();
-        List<PCModel> recommendationBasedOnUserRatings=pc.applyOnRatings();
-        saveInCassandra.saveMovieRecommendations(recommendationBasedOnUserRatings);
-
-
+        try {
+            PearsonCorrelation pc = new PearsonCorrelation();
+            List<PCModel> recommendationBasedOnUserRatings = pc.applyOnRatings();
+            recoMining.mapMovieAndRecommendations(recommendationBasedOnUserRatings);
+        }
+        catch (NullPointerException e)
+        {
+            e.printStackTrace();
+        }
     }
 }

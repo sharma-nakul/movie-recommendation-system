@@ -1,11 +1,15 @@
 package movie.model;
 
+import org.springframework.stereotype.Component;
+
 import java.io.Serializable;
 
 /**
  * Created by Naks on 04-May-16.
  * POJO class for tags
  */
+
+@Component
 public class Tag implements Serializable {
 
     private int userId;

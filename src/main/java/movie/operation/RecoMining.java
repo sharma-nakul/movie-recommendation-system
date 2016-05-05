@@ -1,8 +1,5 @@
 package movie.operation;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
-import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import movie.model.*;
 import movie.rdd.functions.MapMovieUDF;
 import movie.rdd.functions.MapRatingUDF;
@@ -19,8 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
-
 /**
  * Created by Naks on 02-May-16.
  * Db Operations to save in cassandra
@@ -28,12 +23,12 @@ import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
  * CREATE TABLE movies.movies_list (movie_id int PRIMARY KEY, movie_name text, genre_list list<text>);
  * CREATE TABLE movies.ratings (user_id int, movie_id int, rating_given_by_user float, PRIMARY KEY(user_id,movie_id));
  * CREATE TABLE movies.tags (user_id int, movie_id int, tag text, PRIMARY KEY(user_id,movie_id,tag));
- *
+ * CREATE TABLE movies.recommendation (movie_id int PRIMARY KEY, movie_name text,reco_value float);
  */
 
-public class SaveInCassandra {
+public class RecoMining {
 
-    private static final Logger logger = LoggerFactory.getLogger(SaveInCassandra.class);
+    private static final Logger logger = LoggerFactory.getLogger(RecoMining.class);
 
     private JavaRDD<Movie> moviesRDD;
     private JavaRDD<Rating> ratingRDD;
@@ -41,42 +36,15 @@ public class SaveInCassandra {
     private SQLContext sqlContext;
     private JavaSparkContext jsc;
 
-    public SaveInCassandra(SparkContext sc) {
+    public RecoMining(SparkContext sc) {
         this.jsc=JavaSparkContext.fromSparkContext(sc);
         sqlContext=new SQLContext(sc);
         this.moviesRDD = jsc.textFile(CONSTANT.getMoviesFilePath()).map(new MapMovieUDF());
         this.ratingRDD =jsc.textFile(CONSTANT.getRatingsFilePath()).map(new MapRatingUDF());
         this.tagRDD=jsc.textFile(CONSTANT.getTagsFilePath()).map(new MapTagUDF());
-        //Creating Cluster object for Cassandra
-        Cluster cluster = Cluster.builder().addContactPoint("127.0.0.1").build();
-        //Creating Session object for Cassandra
-        Session session = cluster.connect(CONSTANT.getKeySpace());
-
     }
 
-    public void saveMovies(){
-        CassandraJavaUtil.javaFunctions(moviesRDD)
-                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getMovieListTable(), mapToRow(Movie.class))
-                .saveToCassandra();
-        logger.info("Movies saved in cassandra successfully");
-    }
-
-    public void saveRatings(){
-        CassandraJavaUtil.javaFunctions(ratingRDD)
-                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getRatingsTable(),mapToRow(Rating.class))
-                .saveToCassandra();
-        logger.info("Ratings saved in cassandra successfully");
-    }
-
-    public void saveTags(JavaSparkContext jsc){
-        CassandraJavaUtil.javaFunctions(tagRDD)
-                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getTagsTable(),mapToRow(Tag.class))
-                .saveToCassandra();
-        logger.info("Tags saved in cassandra successfully");
-    }
-
-    public void saveMovieRecommendations(List<PCModel> ratingRecommendation){
-
+    public void mapMovieAndRecommendations(List<PCModel> ratingRecommendation){
         //Convert List<PCModel> to rdd
         JavaRDD<PCModel> recoRDD=jsc.parallelize(ratingRecommendation);
 
@@ -103,10 +71,9 @@ public class SaveInCassandra {
         //Convert to RDD to persist in Cassandra
         JavaRDD<MovieRecommendation> movieRecoRDD=movieRecoDdRDD.map(new MapRecoUDF());
 
-        CassandraJavaUtil.javaFunctions(movieRecoRDD)
-                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getRecoTable(),mapToRow(MovieRecommendation.class))
-                .saveToCassandra();
-        logger.info("Movie Recommendation saved in cassandra successfully");
-
+        DBService dbService=new DBService();
+        dbService.saveRecommendation(movieRecoRDD);
     }
+
+
 }

@@ -1,5 +1,7 @@
 package movie.model;
 
+import org.springframework.stereotype.Component;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +10,8 @@ import java.util.List;
  * Created by Naks on 02-May-16.
  * Movies list and their corresponding list of genre
  */
+
+@Component
 public class Movie implements Serializable {
     private int movieId;
     private String movieName;

@@ -1,9 +1,13 @@
 package movie.model;
 
+import org.springframework.stereotype.Component;
+
 /**
  * Created by Naks on 02-May-16.
  * To serve static values
  */
+
+@Component
 public class CONSTANT {
     private static final String keySpace="movies";
     private static final String movieListTable="movies_list";

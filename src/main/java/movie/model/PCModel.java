@@ -1,11 +1,15 @@
 package movie.model;
 
+import org.springframework.stereotype.Component;
+
 import java.io.Serializable;
 
 /**
  * Created by Naks on 04-May-16.
  * POJO Model of Pearson Correlation Algorithm
  */
+
+@Component
 public class PCModel implements Serializable{
     private int movieId;
     private float rating;
