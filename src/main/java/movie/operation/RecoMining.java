@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static org.apache.spark.sql.functions.avg;
+
 /**
  * Created by Naks on 02-May-16.
  * Db Operations to save in cassandra
@@ -35,18 +37,21 @@ public class RecoMining {
     private JavaRDD<Tag> tagRDD;
     private SQLContext sqlContext;
     private JavaSparkContext jsc;
+    private DBService dbService;
+
 
     public RecoMining(SparkContext sc) {
-        this.jsc=JavaSparkContext.fromSparkContext(sc);
-        sqlContext=new SQLContext(sc);
+        this.jsc = JavaSparkContext.fromSparkContext(sc);
+        sqlContext = new SQLContext(sc);
         this.moviesRDD = jsc.textFile(CONSTANT.getMoviesFilePath()).map(new MapMovieUDF());
-        this.ratingRDD =jsc.textFile(CONSTANT.getRatingsFilePath()).map(new MapRatingUDF());
-        this.tagRDD=jsc.textFile(CONSTANT.getTagsFilePath()).map(new MapTagUDF());
+        this.ratingRDD = jsc.textFile(CONSTANT.getRatingsFilePath()).map(new MapRatingUDF());
+        this.tagRDD = jsc.textFile(CONSTANT.getTagsFilePath()).map(new MapTagUDF());
+        this.dbService=new DBService();
     }
 
-    public void mapMovieAndRecommendations(List<PCModel> ratingRecommendation){
+    public void mapMovieAndRecommendations(List<PCModel> ratingRecommendation) {
         //Convert List<PCModel> to rdd
-        JavaRDD<PCModel> recoRDD=jsc.parallelize(ratingRecommendation);
+        JavaRDD<PCModel> recoRDD = jsc.parallelize(ratingRecommendation);
 
         //Register Recommendations RDD into DataFrame -> Recommendation DataFrame
         DataFrame recoDF = sqlContext.createDataFrame(recoRDD, PCModel.class);
@@ -62,18 +67,40 @@ public class RecoMining {
         DataFrame movieDF = sqlContext.sql("SELECT movieId, movieName FROM movieIdAndName");
 
         // Join two DataFrames to form columns -> movieId, rating, movieName
-        DataFrame joinedDF=recoDF.join(movieDF,recoDF.col("movieId")
+        DataFrame joinedDF = recoDF.join(movieDF, recoDF.col("movieId")
                 .equalTo(movieDF.col("movieId")))
                 .drop(movieDF.col("movieId"));
 
-        JavaRDD<Row> movieRecoDdRDD= joinedDF.toJavaRDD();
+        JavaRDD<Row> movieRecoDdRDD = joinedDF.toJavaRDD();
 
         //Convert to RDD to persist in Cassandra
-        JavaRDD<MovieRecommendation> movieRecoRDD=movieRecoDdRDD.map(new MapRecoUDF());
+        JavaRDD<MovieRecommendation> movieRecoRDD = movieRecoDdRDD.map(new MapRecoUDF());
 
-        DBService dbService=new DBService();
         dbService.saveRecommendation(movieRecoRDD);
     }
 
+    public void BayesianAverageCalculation(){
+        /**
+         * Steps
+         * 1. Average Rating of the movie
+         * 2. Number of votes for the movie (count)
+         * 3. Minimum votes required to be listed =5
+         * 4. Mean of all movie ratings
+         */
+
+        DataFrame moviesDF = sqlContext.createDataFrame(ratingRDD, Rating.class);
+        moviesDF.registerTempTable("movie_ratings");
+
+        DataFrame averageRatingOfEachMovie=moviesDF.groupBy("movieId").agg(avg("ratingGivenByUser").alias("averageRating"));
+        DataFrame numberOfVotesForEachMovie=moviesDF.groupBy("movieId").count();
+        DataFrame meanOfAllMovieRatings=moviesDF.agg(avg("ratingGivenByUser"));
+
+        averageRatingOfEachMovie.show();
+        numberOfVotesForEachMovie.show();
+        meanOfAllMovieRatings.show();
+
+
+
+    }
 
 }

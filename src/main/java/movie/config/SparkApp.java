@@ -44,7 +44,8 @@ public class SparkApp {
         try {
             PearsonCorrelation pc = new PearsonCorrelation();
             List<PCModel> recommendationBasedOnUserRatings = pc.applyOnRatings();
-            recoMining.mapMovieAndRecommendations(recommendationBasedOnUserRatings);
+            //recoMining.mapMovieAndRecommendations(recommendationBasedOnUserRatings);
+            recoMining.BayesianAverageCalculation();
         }
         catch (NullPointerException e)
         {
