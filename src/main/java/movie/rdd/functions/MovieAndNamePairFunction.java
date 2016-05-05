@@ -1,4 +1,4 @@
-package movie.rdd;
+package movie.rdd.functions;
 
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.Row;

@@ -1,4 +1,4 @@
-package movie.rdd;
+package movie.rdd.functions;
 
 import movie.model.MovieRecommendation;
 import org.apache.spark.api.java.function.Function;

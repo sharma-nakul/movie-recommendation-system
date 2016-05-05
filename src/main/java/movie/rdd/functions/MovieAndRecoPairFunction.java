@@ -1,4 +1,4 @@
-package movie.rdd;
+package movie.rdd.functions;
 
 import movie.model.PCModel;
 import org.apache.spark.api.java.function.PairFunction;
