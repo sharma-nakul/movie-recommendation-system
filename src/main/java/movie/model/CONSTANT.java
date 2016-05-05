@@ -14,12 +14,21 @@ public class CONSTANT {
     private static final String ratingsTable="ratings";
     private static final String tagsTable="tags";
     private static final String recoTable="recommendation";
-
+    private static final String bayesianTable="bayesian_avg";
+    private static final int minimumVotesRequired=5;
 
     private static final String moviesFilePath = "src\\main\\resources\\movies.csv";
     private static final String ratingsFilePath = "src\\main\\resources\\ratings.csv";
     private static final String tagsFilePath = "src\\main\\resources\\tags.csv";
     private static final String outputPath = "src\\main\\resources\\output";
+
+    public static String getBayesianTable() {
+        return bayesianTable;
+    }
+
+    public static int getMinimumVotesRequired() {
+        return minimumVotesRequired;
+    }
 
     public static String getMoviesFilePath() {
         return moviesFilePath;

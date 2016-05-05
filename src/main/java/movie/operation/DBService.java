@@ -9,11 +9,11 @@ import org.slf4j.LoggerFactory;
 import static com.datastax.spark.connector.japi.CassandraJavaUtil.mapToRow;
 
 /**
- * Created by Naks on 04-May-16.
+ * Created by Naks on 02-May-16.
  * DBService interface implementation
  */
 
-public class DBService{
+public class DBService {
 
     private static final Logger logger = LoggerFactory.getLogger(DBService.class);
 
@@ -27,22 +27,29 @@ public class DBService{
 
     public void saveRatings(JavaRDD<Rating> ratingsRDD) {
         CassandraJavaUtil.javaFunctions(ratingsRDD)
-                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getRatingsTable(),mapToRow(Rating.class))
+                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getRatingsTable(), mapToRow(Rating.class))
                 .saveToCassandra();
         logger.info("Ratings saved in cassandra successfully");
     }
 
-    public void saveTags(JavaRDD<Tag> tagsRDD){
+    public void saveTags(JavaRDD<Tag> tagsRDD) {
         CassandraJavaUtil.javaFunctions(tagsRDD)
-                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getTagsTable(),mapToRow(Tag.class))
+                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getTagsTable(), mapToRow(Tag.class))
                 .saveToCassandra();
         logger.info("Tags saved in cassandra successfully");
     }
 
-    public void saveRecommendation(JavaRDD<MovieRecommendation> movieRecoRDD){
+    public void saveRecommendation(JavaRDD<MovieRecommendation> movieRecoRDD) {
         CassandraJavaUtil.javaFunctions(movieRecoRDD)
-                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getRecoTable(),mapToRow(MovieRecommendation.class))
+                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getRecoTable(), mapToRow(MovieRecommendation.class))
                 .saveToCassandra();
         logger.info("Movie Recommendation saved in cassandra successfully");
+    }
+
+    public void saveBayesianAverage(JavaRDD<BayesianAverage> bayesianRDD) {
+        CassandraJavaUtil.javaFunctions(bayesianRDD)
+                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getBayesianTable(), mapToRow(BayesianAverage.class))
+                .saveToCassandra();
+        logger.info("Bayesian Average saved in cassandra successfully");
     }
 }

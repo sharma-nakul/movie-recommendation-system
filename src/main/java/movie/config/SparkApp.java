@@ -3,6 +3,7 @@ package movie.config;
 import movie.model.PCModel;
 import movie.operation.PearsonCorrelation;
 import movie.operation.RecoMining;
+import org.apache.log4j.Level;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -24,11 +25,12 @@ public class SparkApp {
 
     public static void main(String[] args) throws Exception {
 
-
+        org.apache.log4j.Logger.getLogger("org").setLevel(Level.OFF);
+        org.apache.log4j.Logger.getLogger("akka").setLevel(Level.OFF);
         SpringApplication.run(SparkApp.class,args);
 
         SparkConf sparkConf = new SparkConf().setAppName("MovieRecommendation")
-                .setMaster("local[4]")
+                .setMaster("local[*]")
                 .set("spark.driver.allowMultipleContexts", "true")
                 .set("spark.cassandra.connection.host", "127.0.0.1");
 

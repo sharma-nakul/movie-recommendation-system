@@ -1,10 +1,7 @@
 package movie.operation;
 
 import movie.model.*;
-import movie.rdd.functions.MapMovieUDF;
-import movie.rdd.functions.MapRatingUDF;
-import movie.rdd.functions.MapRecoUDF;
-import movie.rdd.functions.MapTagUDF;
+import movie.rdd.functions.*;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -17,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import static org.apache.spark.sql.functions.avg;
+import static org.apache.spark.sql.functions.count;
 
 /**
  * Created by Naks on 02-May-16.
@@ -46,7 +44,7 @@ public class RecoMining {
         this.moviesRDD = jsc.textFile(CONSTANT.getMoviesFilePath()).map(new MapMovieUDF());
         this.ratingRDD = jsc.textFile(CONSTANT.getRatingsFilePath()).map(new MapRatingUDF());
         this.tagRDD = jsc.textFile(CONSTANT.getTagsFilePath()).map(new MapTagUDF());
-        this.dbService=new DBService();
+        this.dbService = new DBService();
     }
 
     public void mapMovieAndRecommendations(List<PCModel> ratingRecommendation) {
@@ -79,28 +77,51 @@ public class RecoMining {
         dbService.saveRecommendation(movieRecoRDD);
     }
 
-    public void BayesianAverageCalculation(){
+    public void BayesianAverageCalculation() {
         /**
          * Steps
-         * 1. Average Rating of the movie
-         * 2. Number of votes for the movie (count)
-         * 3. Minimum votes required to be listed =5
-         * 4. Mean of all movie ratings
+         * 1. Average Rating of the movie -> R (averageRating)
+         * 2. Number of votes for the movie -> v (count)
+         * 3. Minimum votes required to be listed =5 -> m
+         * 4. Mean of all movie ratings -> C
+         * (v/v+m)*R+(m/v+m)*c
          */
 
-        DataFrame moviesDF = sqlContext.createDataFrame(ratingRDD, Rating.class);
-        moviesDF.registerTempTable("movie_ratings");
+        // Fetch Movie Ratings from table
+        DataFrame ratingDF = sqlContext.createDataFrame(ratingRDD, Rating.class);
+        ratingDF.registerTempTable("movie_ratings");
 
-        DataFrame averageRatingOfEachMovie=moviesDF.groupBy("movieId").agg(avg("ratingGivenByUser").alias("averageRating"));
-        DataFrame numberOfVotesForEachMovie=moviesDF.groupBy("movieId").count();
-        DataFrame meanOfAllMovieRatings=moviesDF.agg(avg("ratingGivenByUser"));
+        //Fetch MovieId and MovieName from table
+        DataFrame schemaMovieDF = sqlContext.createDataFrame(moviesRDD, Movie.class);
+        schemaMovieDF.registerTempTable("movieIdAndName");
+        DataFrame movieDF = sqlContext.sql("SELECT movieId, movieName FROM movieIdAndName");
 
-        averageRatingOfEachMovie.show();
-        numberOfVotesForEachMovie.show();
-        meanOfAllMovieRatings.show();
+        //Calculate Bayesian Average
+        double meanOfAllMovieRatings = ratingDF.agg(avg("ratingGivenByUser")).alias("meanOfMovieRating").head().getDouble(0);
+        DataFrame tDF = ratingDF.groupBy("movieId").agg(avg("ratingGivenByUser").alias("averageRating"),
+                count("movieId").alias("count")).orderBy("count");
+        tDF.registerTempTable("tDF");
 
+        String sqlQuery = "select movieId, averageRating, count, ((count/(count+" + CONSTANT.getMinimumVotesRequired() +
+                "))*averageRating) + ((" + CONSTANT.getMinimumVotesRequired() + "/CAST((count+" + CONSTANT.getMinimumVotesRequired() +
+                ") AS Decimal))*" + meanOfAllMovieRatings + ") AS bayesianAverage from tDF";
+        DataFrame bayesianAvgDF = sqlContext.sql(sqlQuery);
+        bayesianAvgDF.registerTempTable("bayesianAvgDF");
 
+        /*DataFrame bayesianDF = movieDF.join(bayesianAvgDF, movieDF.col("movieId").equalTo(bayesianAvgDF.col("movieId")))
+                .orderBy(desc("bayesianAverage"))
+                .drop(bayesianAvgDF.col("movieId"));*/
+
+        //Join MovieId, MovieName and BayesianAverage
+        DataFrame bayesianDF = sqlContext.sql("select CAST(movieIdAndName.movieId as Integer), " +
+                "movieIdAndName.movieName, averageRating, CAST(count as Integer), " +
+                "bayesianAverage from movieIdAndName inner join bayesianAvgDF on movieIdAndName.movieId = bayesianAvgDF.movieId " +
+                "order by bayesianAverage desc");
+
+        //Persist results in cassandra
+        JavaRDD<Row> bayesianAverageRDD = bayesianDF.toJavaRDD();
+        JavaRDD<BayesianAverage> bayesianRDD = bayesianAverageRDD.map(new MapBayesianUDF());
+        dbService.saveBayesianAverage(bayesianRDD);
 
     }
-
 }
