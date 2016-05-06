@@ -44,10 +44,13 @@ public class SparkApp {
         //saveInCassandra.saveTags(); // Completed and Working
 
         try {
-            PearsonCorrelation pc = new PearsonCorrelation();
-            List<PCModel> recommendationBasedOnUserRatings = pc.applyOnRatings();
+            // TODO: 5/6/2016  changing according to functionality, based on user request the required function must be called
+            //PearsonCorrelation pc = new PearsonCorrelation();
+            //List<PCModel> recommendationBasedOnUserRatings = pc.applyOnRatings(7,50,0.8);
             //recoMining.mapMovieAndRecommendations(recommendationBasedOnUserRatings);
-            recoMining.BayesianAverageCalculation();
+            recoMining.SaveGenres();
+            System.out.println("The GC for Comedy and Romance is: "+recoMining.GenreCorrelation("Comedy","Romance"));
+            //recoMining.BayesianAverageCalculation();
         }
         catch (NullPointerException e)
         {

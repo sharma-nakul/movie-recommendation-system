@@ -28,14 +28,14 @@ import java.util.List;
 public class PearsonCorrelation {
 
     private static final Logger logger = LoggerFactory.getLogger(PearsonCorrelation.class);
-
-    public List<PCModel> applyOnRatings() {
+    //Changed by Shounak on 5th May 2016, customizing input for the Pearson Correlation model
+    public List<PCModel> applyOnRatings(int userID, int count, double proximity) {
         try {
             DataModel model = new FileDataModel(new File(CONSTANT.getRatingsFilePath()));
             UserSimilarity similarity = new PearsonCorrelationSimilarity(model);
-            UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.8, similarity, model);
+            UserNeighborhood neighborhood = new ThresholdUserNeighborhood(proximity, similarity, model);
             UserBasedRecommender recommender = new GenericUserBasedRecommender(model, neighborhood, similarity);
-            List<RecommendedItem> recommendations = recommender.recommend(7, 10);
+            List<RecommendedItem> recommendations = recommender.recommend(userID, count);
             List<PCModel> recoList=new ArrayList<>();
             for(RecommendedItem rI:recommendations)
             {

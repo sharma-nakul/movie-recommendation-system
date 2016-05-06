@@ -52,4 +52,11 @@ public class DBService {
                 .saveToCassandra();
         logger.info("Bayesian Average saved in cassandra successfully");
     }
+
+    public void saveGenreMovieMap(JavaRDD<MovieGenres> GenresRDD) {
+        CassandraJavaUtil.javaFunctions(GenresRDD)
+                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getGenresTable(), mapToRow(MovieGenres.class))
+                .saveToCassandra();
+        logger.info("Genres saved in cassandra successfully");
+    }
 }
