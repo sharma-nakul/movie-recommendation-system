@@ -1,5 +1,6 @@
 package movie.config;
 
+import com.datastax.driver.core.Session;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.View;
@@ -17,30 +18,18 @@ import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
  */
 @Configuration
 @EnableWebMvc
-public class AppConfig extends WebMvcConfigurerAdapter{
-
-  /*  @Override
-    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-
-        configurer.favorPathExtension(false).
-                favorParameter(true).
-                ignoreAcceptHeader(true).
-                useJaf(false).
-                defaultContentType(MediaType.APPLICATION_JSON).
-                mediaType("text",MediaType.TEXT_HTML).
-                mediaType("json", MediaType.APPLICATION_JSON);
-    }*/
+public class AppConfig extends WebMvcConfigurerAdapter {
 
     @Bean
-    public InternalResourceViewResolver internalResourceViewResolver(){
-        InternalResourceViewResolver internalResourceViewResolver=new InternalResourceViewResolver();
+    public InternalResourceViewResolver internalResourceViewResolver() {
+        InternalResourceViewResolver internalResourceViewResolver = new InternalResourceViewResolver();
         internalResourceViewResolver.setPrefix("/");
         internalResourceViewResolver.setSuffix(".jsp");
         return internalResourceViewResolver;
     }
 
     @Override
-    public void configureDefaultServletHandling (DefaultServletHandlerConfigurer configurer){
+    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
         configurer.enable();
     }
 
@@ -54,5 +43,15 @@ public class AppConfig extends WebMvcConfigurerAdapter{
     @Bean
     public ViewResolver viewResolver() {
         return new BeanNameViewResolver();
+    }
+
+    @Bean
+    public Session session() {
+        return sessionManager().getSession();
+    }
+
+    @Bean
+    public CassandraSessionManager sessionManager() {
+        return new CassandraSessionManager();
     }
 }
