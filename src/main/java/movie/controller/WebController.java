@@ -18,7 +18,6 @@ public class WebController {
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public ResponseEntity getLogin(@RequestBody String userId) {
-
         User user=userService.getUserStatus(userId);
             return new ResponseEntity<User>(user,HttpStatus.OK);
     }
