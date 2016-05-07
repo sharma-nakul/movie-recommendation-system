@@ -16,17 +16,18 @@ import java.util.List;
 import static org.apache.spark.sql.functions.*;
 
 
-//  Created by Naks on 02-May-16.
-//  Db Operations to save in cassandra
-//  CREATE KEYSPACE "movies" WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 3};
-//  CREATE TABLE movies.movies_list (movie_id int PRIMARY KEY, movie_name text, genre_list list<text>);
-//  CREATE TABLE movies.ratings (user_id int, movie_id int, rating_given_by_user float, PRIMARY KEY(user_id,movie_id));
-//  CREATE TABLE movies.tags (user_id int, movie_id int, tag text, PRIMARY KEY(user_id,movie_id,tag));
-//  CREATE TABLE movies.recommendation (movie_id int PRIMARY KEY, movie_name text,reco_value float);
-//Added by shounak on 2nd May 2016 for saving 1-1 Genre Mapping
-//  CREATE TABLE movies.genres (movie_id int PRIMARY KEY, movie_name text,genre text);
-
-
+/**
+ * Created by Naks on 02-May-16.
+ * Db Operations to save in cassandra
+ * CREATE KEYSPACE "movies" WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 3};
+ * CREATE TABLE movies.movies_list (movie_id int PRIMARY KEY, movie_name text, genre_list list<text>);
+ * CREATE TABLE movies.ratings (user_id int, movie_id int, rating_given_by_user float, PRIMARY KEY(user_id,movie_id));
+ * CREATE TABLE movies.tags (user_id int, movie_id int, tag text, PRIMARY KEY(user_id,movie_id,tag));
+ * CREATE TABLE movies.recommendation (movie_id int PRIMARY KEY, movie_name text,reco_value float);
+ * CREATE TABLE movies.genres (movie_id int PRIMARY KEY, movie_name text,genre text);
+ * CREATE TABLE movies.bayesian_avg (movie_id int PRIMARY KEY,movie_name text, average_rating double,count int
+ * ,bayesian_average double);
+ */
 public class RecoMining {
 
     private static final Logger logger = LoggerFactory.getLogger(RecoMining.class);
@@ -83,12 +84,11 @@ public class RecoMining {
         dbService.saveRecommendation(movieRecoRDD);
     }
 
-    //Added by Shounak on 2nd May 2016 for saving 1-1 genre mapping to cassandra
     public void SaveGenres() {
         DataFrame schemaMovieDF = sqlContext.createDataFrame(moviesRDD, Movie.class);
         schemaMovieDF.registerTempTable("movieGenreList");
         DataFrame movieDF = sqlContext.sql("SELECT movieId, movieName, genreList FROM movieGenreList");
-        DataFrame genres = movieDF.select(movieDF.col("movieId"), movieDF.col("movieName"),org.apache.spark.sql.functions.explode(movieDF.col("genreList").as("genre")));
+        DataFrame genres = movieDF.select(movieDF.col("movieId"), movieDF.col("movieName"), org.apache.spark.sql.functions.explode(movieDF.col("genreList").as("genre")));
         DBService saveToCassandra = new DBService();
 
         JavaRDD<Row> genresRDD = genres.toJavaRDD();
@@ -97,50 +97,46 @@ public class RecoMining {
 
         genres.show();
     }
-    //Added by Shounak on 2nd May 2016 for calculation genre corelation between GenreA and GenreB
-    public double GenreCorrelation(String genreA, String genreB){
-        return CONSTANT.getwRatio()*genre_prob(genreA,genreB)+genre_weight(genreA,genreB);
+
+    public double GenreCorrelation(String genreA, String genreB) {
+        return CONSTANT.getwRatio() * genre_prob(genreA, genreB) + genre_weight(genreA, genreB);
     }
 
-    //Added by Shounak on 2nd May 2016 for calculating genre probability i.e (Iab/Ia)
-    private double genre_prob(String genreA, String genreB)
-    {
+    private double genre_prob(String genreA, String genreB) {
         DataFrame genresDF = sqlContext.createDataFrame(moviegenreRDD, MovieGenres.class);
         genresDF.registerTempTable("genres");
-        double IA = genresDF.sqlContext().sql("select CAST(count(movieId) as double) from genres where genre = '"+ genreA +"'").head().getDouble(0);
+        double IA = genresDF.sqlContext().sql("select CAST(count(movieId) as double) from genres where genre = '" + genreA + "'").head().getDouble(0);
         DataFrame moviesGenreList = sqlContext.createDataFrame(moviesRDD, Movie.class);
         moviesGenreList.registerTempTable("moviesGenreList");
         //double IB = moviesGenreList.sqlContext().sql("select * from moviesGenreList where  ").head().getDouble(0);
         System.out.println(genreA + " " + genreB);
 
-        DataFrame genres = moviesGenreList.select(moviesGenreList.col("genreList"),moviesGenreList.col("movieName"),array_contains(moviesGenreList.col("genreList"),genreA).as("genreA"),moviesGenreList.col("movieName"),array_contains(moviesGenreList.col("genreList"),genreB).as("genreB")).where("genreA=true and genreB=true");
+        DataFrame genres = moviesGenreList.select(moviesGenreList.col("genreList"), moviesGenreList.col("movieName"), array_contains(moviesGenreList.col("genreList"), genreA).as("genreA"), moviesGenreList.col("movieName"), array_contains(moviesGenreList.col("genreList"), genreB).as("genreB")).where("genreA=true and genreB=true");
         //DataFrame genres = moviesGenreList.select(moviesGenreList.col("movieId").when(org.apache.spark.sql.functions.array_contains(moviesGenreList.col("genreList"),genreB),"true").when(org.apache.spark.sql.functions.array_contains(moviesGenreList.col("genreList"),genreA),"true"),moviesGenreList.col("genreList"));
         //DataFrame genres = moviesGenreList.select(moviesGenreList.col("movieId"),moviesGenreList.col("genreList")).where(moviesGenreList.col("genreList"));
         genres.show();
-        return genres.count()/IA;
+        return genres.count() / IA;
     }
 
-    //// TODO: 5/6/2016 run the genre weight equation for all movies in the given genre and find the double value
-    private double genre_weight(String genreA, String genreB)
-    {
+    //// TODO: 5/2/2016 run the genre weight equation for all movies in the given genre and find the double value
+    public double genre_weight(String genreA, String genreB) {
         //Register Movie RDD into DataFrame -> Movie DataFrame
         DataFrame schemaMovieDF = sqlContext.createDataFrame(moviesRDD, Movie.class);
         schemaMovieDF.registerTempTable("movies");
 
-
+        List<Row> movieList=schemaMovieDF.collectAsList();
+        for(Row row: movieList){
+            System.out.println(row.getString(2));
+        }
         return penalty("French Kiss (1995)");
     }
 
 
-    //Added by Shounak on 2nd May 2016 for calculating the penalty based on how many genres 1 movie belongs to. This is required
-    //for calculating genre weight
-    private double penalty(String movie)
-    {
+    private double penalty(String movie) {
         DataFrame moviesGenreList = sqlContext.createDataFrame(moviesRDD, Movie.class);
-        //moviesGenreList.registerTempTable("moviesGenreList");
-        double IA = moviesGenreList.select(size(moviesGenreList.col("genreList")),moviesGenreList.col("movieName")).where("movieName='"+movie+"'").head().getInt(0);
+        double IA = moviesGenreList.select(size(moviesGenreList.col("genreList")), moviesGenreList.col("movieName")).where("movieName='" + movie + "'").head().getInt(0);
         System.out.println(IA);
-        return 2/IA;
+        return 2 / IA;
     }
 
 
@@ -175,11 +171,6 @@ public class RecoMining {
         DataFrame bayesianAvgDF = sqlContext.sql(sqlQuery);
         bayesianAvgDF.registerTempTable("bayesianAvgDF");
 
-        /*DataFrame bayesianDF = movieDF.join(bayesianAvgDF, movieDF.col("movieId").equalTo(bayesianAvgDF.col("movieId")))
-                .orderBy(desc("bayesianAverage"))
-                .drop(bayesianAvgDF.col("movieId"));*/
-
-        //Added by Shounak on 2nd May 2016 for calculating the Bayesian Average
         DataFrame bayesianDF = sqlContext.sql("select CAST(movieIdAndName.movieId as Integer), " +
                 "movieIdAndName.movieName, averageRating, CAST(count as Integer), " +
                 "bayesianAverage from movieIdAndName inner join bayesianAvgDF on movieIdAndName.movieId = bayesianAvgDF.movieId " +
