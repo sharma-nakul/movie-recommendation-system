@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService{
 
     @Override
-    public String getUserStatus(String userId){
+    public User getUserStatus(String userId){
         User user=new User();
         user.setUserId(Integer.parseInt(userId));
-        return user.getStatus();
+        return user;
     }
 }

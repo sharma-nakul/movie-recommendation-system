@@ -1,18 +1,14 @@
 package movie.controller;
 
+import movie.model.User;
 import movie.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 
-@Controller
-@RequestMapping(produces = {"application/json","text/html"})
+@RestController
 public class WebController {
 
     @Autowired
@@ -23,8 +19,8 @@ public class WebController {
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public ResponseEntity getLogin(@RequestBody String userId) {
 
-             String status=userService.getUserStatus(userId);
-            return new ResponseEntity<String>(status,HttpStatus.OK);
+        User user=userService.getUserStatus(userId);
+            return new ResponseEntity<User>(user,HttpStatus.OK);
     }
 
 }
