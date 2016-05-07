@@ -1,19 +1,14 @@
 package movie.config;
 
-import movie.model.PCModel;
-import movie.operation.PearsonCorrelation;
 import movie.operation.RecoMining;
 import org.apache.log4j.Level;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.SQLContext;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 import static org.apache.spark.api.java.JavaSparkContext.fromSparkContext;
 
@@ -27,7 +22,7 @@ public class SparkApp {
 
         org.apache.log4j.Logger.getLogger("org").setLevel(Level.OFF);
         org.apache.log4j.Logger.getLogger("akka").setLevel(Level.OFF);
-        SpringApplication.run(SparkApp.class,args);
+        //SpringApplication.run(SparkApp.class,args);
 
         SparkConf sparkConf = new SparkConf().setAppName("MovieRecommendation")
                 .setMaster("local[*]")
@@ -48,8 +43,8 @@ public class SparkApp {
             //PearsonCorrelation pc = new PearsonCorrelation();
             //List<PCModel> recommendationBasedOnUserRatings = pc.applyOnRatings(7,50,0.8);
             //recoMining.mapMovieAndRecommendations(recommendationBasedOnUserRatings);
-            recoMining.SaveGenres();
-            System.out.println("The GC for Comedy and Romance is: "+recoMining.GenreCorrelation("Comedy","Romance"));
+            //recoMining.SaveGenres();
+            //System.out.println("The GC for Comedy and Romance is: "+recoMining.GenreCorrelation("Comedy","Romance"));
             //recoMining.BayesianAverageCalculation();
         }
         catch (NullPointerException e)

@@ -7,12 +7,9 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.DataFrame;
 import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Function1;
-import scala.runtime.BoxedUnit;
 
 import java.util.List;
 
@@ -188,10 +185,11 @@ public class RecoMining {
                 "bayesianAverage from movieIdAndName inner join bayesianAvgDF on movieIdAndName.movieId = bayesianAvgDF.movieId " +
                 "order by bayesianAverage desc");
 
-        //Persist results in cassandra
+        bayesianDF.show();
+       /* //Persist results in cassandra
         JavaRDD<Row> bayesianAverageRDD = bayesianDF.toJavaRDD();
         JavaRDD<BayesianAverage> bayesianRDD = bayesianAverageRDD.map(new MapBayesianUDF());
-        dbService.saveBayesianAverage(bayesianRDD);
+        dbService.saveBayesianAverage(bayesianRDD);*/
 
     }
 }
