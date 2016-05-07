@@ -9,24 +9,26 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CONSTANT {
-    //Added by shounak on 5th May 2015 for calculating Genre Similarity
-    private static final double wRatio=0.5;
-    //Added by shounak on 5th May 2015
-    private static final String keySpace="movies";
-    private static final String movieListTable="movies_list";
-    private static final String ratingsTable="ratings";
-    private static final String tagsTable="tags";
-    private static final String recoTable="recommendation";
-    private static final String bayesianTable="bayesian_avg";
-    //Added by shounak on 5th May 2015 for 1-1 genre-movie mapping
-    private static final String genresTable="genres";
-    //Added by shounak on 5th May 2015
-    private static final int minimumVotesRequired=5;
+    private static final double wRatio = 0.5;
+    private static final String keySpace = "movies";
+    private static final String movieListTable = "movies_list";
+    private static final String ratingsTable = "ratings";
+    private static final String tagsTable = "tags";
+    private static final String recoTable = "recommendation";
+    private static final String bayesianTable = "bayesian_avg";
+    private static final String genresTable = "genres";
+    private static final int minimumVotesRequired = 5;
+    private static final String cassandraHost = "127.0.0.1";
+
 
     private static final String moviesFilePath = "src\\main\\resources\\movies.csv";
     private static final String ratingsFilePath = "src\\main\\resources\\ratings.csv";
     private static final String tagsFilePath = "src\\main\\resources\\tags.csv";
     private static final String outputPath = "src\\main\\resources\\output";
+
+    public static String getCassandraHost() {
+        return cassandraHost;
+    }
 
     public static String getGenresTable() {
         return genresTable;
