@@ -1,6 +1,9 @@
 package movie.service;
 
+import movie.model.TypeParser;
 import movie.model.User;
+
+import java.util.List;
 
 /**
  * Created by Naks on 02-May-16.
@@ -9,5 +12,5 @@ import movie.model.User;
 public interface UserService {
 
     User getUserStatus(String userId);
-
+    List<TypeParser> generateRecommendation (String type, String userId);
 }

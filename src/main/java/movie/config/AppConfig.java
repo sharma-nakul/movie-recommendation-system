@@ -1,6 +1,8 @@
 package movie.config;
 
 import com.datastax.driver.core.Session;
+import org.apache.spark.SparkConf;
+import org.apache.spark.SparkContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.View;
@@ -38,6 +40,16 @@ public class AppConfig extends WebMvcConfigurerAdapter {
         MappingJackson2JsonView view = new MappingJackson2JsonView();
         view.setPrettyPrint(true);
         return view;
+    }
+
+    @Bean
+    public SparkContext sparkContext(){
+        SparkConf sparkConf = new SparkConf().setAppName("MovieRecommendation")
+                .setMaster("local[*]")
+                .set("spark.driver.allowMultipleContexts", "true")
+                .set("spark.cassandra.connection.host", "127.0.0.1");
+
+        return new SparkContext(sparkConf);
     }
 
     @Bean
