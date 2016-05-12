@@ -49,12 +49,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<TypeParser> generateRecommendation(String type, String userId) {
+    public List<TypeParser> generateRecommendation(String type, int userId) {
         List<TypeParser> listTypeParser;
         TypeParser userTypeParser;
 
-        String queryBayesian = "select * from "+CONSTANT.getBayesianTable() +" limit 10";
-        String queryPearson="select * from "+CONSTANT.getRecoTable()+" limit 10";
+        String queryBayesian = "select * from "+CONSTANT.getBayesianTable() +" limit 25";
+        String queryPearson="select * from "+CONSTANT.getRecoTable()+" limit 25";
 
         RecoMining recoMining = new RecoMining(sparkContext);
 
@@ -71,7 +71,7 @@ public class UserServiceImpl implements UserService {
             }
         } else if(type.equals("PC")){
             PearsonCorrelation pc = new PearsonCorrelation();
-            List<PCModel> recommendationBasedOnUserRatings = pc.applyOnRatings(Integer.valueOf(userId),
+            List<PCModel> recommendationBasedOnUserRatings = pc.applyOnRatings(userId,
                     CONSTANT.getTopRowFromRecoTable(), CONSTANT.getAccuracyThreshold());
 
             recoMining.mapMovieAndRecommendations(recommendationBasedOnUserRatings);

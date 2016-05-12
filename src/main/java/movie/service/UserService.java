@@ -12,5 +12,5 @@ import java.util.List;
 public interface UserService {
 
     User getUserStatus(String userId);
-    List<TypeParser> generateRecommendation (String type, String userId);
+    List<TypeParser> generateRecommendation (String type, int userId);
 }

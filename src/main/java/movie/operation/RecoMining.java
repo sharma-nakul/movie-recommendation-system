@@ -48,6 +48,8 @@ public class RecoMining {
         this.ratingRDD = jsc.textFile(CONSTANT.getRatingsFilePath()).map(new MapRatingUDF());
         this.tagRDD = jsc.textFile(CONSTANT.getTagsFilePath()).map(new MapTagUDF());
         this.dbService = new DBService();
+        moviesRDD.cache();
+        ratingRDD.cache();
     }
 
     public void mapMovieAndRecommendations(List<PCModel> ratingRecommendation) {
@@ -176,11 +178,10 @@ public class RecoMining {
                 "bayesianAverage from movieIdAndName inner join bayesianAvgDF on movieIdAndName.movieId = bayesianAvgDF.movieId " +
                 "order by bayesianAverage desc");
 
-        bayesianDF.show();
-       /* //Persist results in cassandra
+        //Persist results in cassandra
         JavaRDD<Row> bayesianAverageRDD = bayesianDF.toJavaRDD();
         JavaRDD<BayesianAverage> bayesianRDD = bayesianAverageRDD.map(new MapBayesianUDF());
-        dbService.saveBayesianAverage(bayesianRDD);*/
+        dbService.saveBayesianAverage(bayesianRDD);
 
     }
 }
