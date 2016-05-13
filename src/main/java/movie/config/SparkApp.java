@@ -38,12 +38,10 @@ public class SparkApp {
         SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sc);
 
         RecoMining recoMining = new RecoMining(sc);
-        //saveInCassandra.saveMovies(); // Completed and Working
-        //saveInCassandra.saveRatings(); // Completed and Working
-        //saveInCassandra.saveTags(); // Completed and Working
 
         try {
-            recoMining.CountUsers();
+            //recoMining.CountUsers();
+           // recoMining.GenreMoviesRatings();
         }
         catch (NullPointerException e)
         {
