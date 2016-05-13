@@ -1,5 +1,6 @@
 package movie.service;
 
+import movie.model.MovieGenreRating;
 import movie.model.TypeParser;
 import movie.model.User;
 
@@ -13,4 +14,5 @@ public interface UserService {
 
     User getUserStatus(String userId);
     List<TypeParser> generateRecommendation (String type, int userId);
+    List<MovieGenreRating> getGenreCorrelation (String userId);
 }

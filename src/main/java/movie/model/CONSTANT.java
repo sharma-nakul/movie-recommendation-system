@@ -18,11 +18,14 @@ public class CONSTANT {
     private static final String bayesianTable = "bayesian_avg";
     private static final String genresTable = "genres";
     private static final String userInfoTable= "user_info";
+    private static final String genreCorrelationTable = "genre_correlation";
+    private static final String genresRatingTable = "genres_rating";
     private static final int minimumVotesRequired = 5;
     private static final String cassandraHost = "127.0.0.1";
+    private static final String userCountTable = "user_count";
 
-    private static final int topRowFromBayesianTable=10;
-    private static final int topRowFromRecoTable=10;
+    private static final int topRowFromBayesianTable=30;
+    private static final int topRowFromRecoTable=30;
 
     //Pearson Correlation constants
     private static final double accuracyThreshold=0.8;
@@ -31,6 +34,18 @@ public class CONSTANT {
     private static final String ratingsFilePath = "C:\\Users\\Naks\\Google Drive\\CMPE 239\\project239\\movie-recommendation-system\\src\\main\\resources\\ratings.csv";
     private static final String tagsFilePath = "C:\\Users\\Naks\\Google Drive\\CMPE 239\\project239\\movie-recommendation-system\\src\\main\\resources\\tags.csv";
     private static final String outputPath = "C:\\Users\\Naks\\Google Drive\\CMPE 239\\project239\\movie-recommendation-system\\src\\main\\resources\\output";
+
+    public static String getUserCountTable() {
+        return userCountTable;
+    }
+
+    public static String getGenresRatingTable() {
+        return genresRatingTable;
+    }
+
+    public static String getGenreCorrelationTable() {
+        return genreCorrelationTable;
+    }
 
     public static int getTopRowFromRecoTable() {
         return topRowFromRecoTable;

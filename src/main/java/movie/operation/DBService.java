@@ -59,4 +59,25 @@ public class DBService {
                 .saveToCassandra();
         logger.info("Genres saved in cassandra successfully");
     }
+
+    public void saveUserCountMap(JavaRDD<UserCount> UserCountRDD) {
+        CassandraJavaUtil.javaFunctions(UserCountRDD)
+                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getUserCountTable(), mapToRow(UserCount.class))
+                .saveToCassandra();
+        logger.info("Genre Movie Rating saved in cassandra successfully");
+    }
+    public void saveGenreCorrelationMap(JavaRDD<GenreSimilarity> GenreCMap) {
+        CassandraJavaUtil.javaFunctions(GenreCMap)
+                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getGenreCorrelationTable(), mapToRow(GenreSimilarity.class))
+                .saveToCassandra();
+        logger.info("Genre Movie Rating saved in cassandra successfully");
+    }
+
+    public void saveGenreMovieRatingMap(JavaRDD<MovieGenreRating> MovieGenresRDD) {
+        CassandraJavaUtil.javaFunctions(MovieGenresRDD)
+                .writerBuilder(CONSTANT.getKeySpace(), CONSTANT.getGenresRatingTable(), mapToRow(MovieGenreRating.class))
+                .saveToCassandra();
+        logger.info("Genre Movie Rating saved in cassandra successfully");
+    }
+
 }

@@ -29,7 +29,9 @@ public class User implements Serializable {
     public String getType() {
         if (this.movieCount == 0)
             type = "BA";
-        //// TODO: 08-May-16 Include Weighted Average condition here
+        else if (this.userId == 999)
+            type = "GC";
+            //// TODO: 08-May-16 Include Weighted Average condition here
         else
             type = "PC";
         return type;

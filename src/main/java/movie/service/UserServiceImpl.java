@@ -3,10 +3,7 @@ package movie.service;
 import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-import movie.model.CONSTANT;
-import movie.model.PCModel;
-import movie.model.TypeParser;
-import movie.model.User;
+import movie.model.*;
 import movie.operation.PearsonCorrelation;
 import movie.operation.RecoMining;
 import org.apache.spark.SparkContext;
@@ -53,8 +50,8 @@ public class UserServiceImpl implements UserService {
         List<TypeParser> listTypeParser;
         TypeParser userTypeParser;
 
-        String queryBayesian = "select * from "+CONSTANT.getBayesianTable() +" limit 25";
-        String queryPearson="select * from "+CONSTANT.getRecoTable()+" limit 25";
+        String queryBayesian = "select * from "+CONSTANT.getBayesianTable() +" limit 30";
+        String queryPearson="select * from "+CONSTANT.getRecoTable()+" limit 30";
 
         RecoMining recoMining = new RecoMining(sparkContext);
 
@@ -90,9 +87,24 @@ public class UserServiceImpl implements UserService {
                 listTypeParser.add(userTypeParser);
             }
         }
-        else { // // TODO: 08-May-16 Genre Correlation needs to be called here
-            listTypeParser = new ArrayList<>();
+        else {
+            listTypeParser= new ArrayList<>();
         }
         return listTypeParser;
+    }
+
+    @Override
+    public List<MovieGenreRating> getGenreCorrelation (String userId){
+        String queryGenreRating="select * from genres_rating where genre_name='Western' limit 30 allow filtering";
+        final ResultSet readGenreTable=session.execute(queryGenreRating);
+        List<MovieGenreRating> ratingList=new ArrayList<>();
+
+        for (Row row : readGenreTable.all()) {
+            MovieGenreRating movieGenreRating = new MovieGenreRating(row.getString("genre_name"),
+                    row.getDouble("average_rating"), row.getString("movie_name"));
+            ratingList.add(movieGenreRating);
+        }
+
+        return ratingList;
     }
 }

@@ -1,6 +1,7 @@
 package movie.controller;
 
 import com.google.gson.Gson;
+import movie.model.MovieGenreRating;
 import movie.model.TypeParser;
 import movie.model.User;
 import movie.model.UserType;
@@ -57,4 +58,14 @@ public class WebController {
         }
     }
 
+    @RequestMapping(value = "/genre", method = RequestMethod.POST)
+    public ResponseEntity getGenreCorrelation(@RequestBody String userId) {
+        try {
+            List<MovieGenreRating> results = userService.getGenreCorrelation(userId);
+            return new ResponseEntity<List<MovieGenreRating>>(results, HttpStatus.OK);
+        } catch (Exception e) {
+            logger.error("Exception -> /genre method: " + e.getMessage());
+            return new ResponseEntity(HttpStatus.BAD_REQUEST);
+        }
+    }
 }
